@@ -107,7 +107,7 @@ pub fn task_done(arguments: Vec<String>) {
 
 	row.sort();
 
-	let mut file = open_csv("data/tasks.csv");
+	let mut file = open_csv("./data/tasks.csv");
 	let reader = BufReader::new(file);
 	
 	let mut lines:Vec<String> = reader
