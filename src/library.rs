@@ -68,11 +68,7 @@ pub fn remove(arguments: Vec<String>) {
 	row.sort();
 	row.reverse();
 
-	for e in &row {
-		println!("{e}");
-	}
-
-	let mut file = open_file("./data/tasks.file");
+	let file = open_file("./data/tasks.file");
 	let reader = BufReader::new(file);
 	
 	let mut lines:Vec<String> = reader
@@ -88,10 +84,7 @@ pub fn remove(arguments: Vec<String>) {
 		}
 	}
 
-	file = fs::File::create("./data/tasks.file").expect("Unable to write");
-	for line in &lines {
-		writeln!(&mut file, "{}", line).expect("Unable to write");
-	}
+	write_in(lines);
 }
 
 pub fn task_done(arguments: Vec<String>) {
@@ -112,7 +105,7 @@ pub fn task_done(arguments: Vec<String>) {
 	
 	row.sort();
 	
-	let mut file = open_file("./data/tasks.file");
+	let file = open_file("./data/tasks.file");
 	let reader = BufReader::new(file);
 	
 	let mut lines:Vec<String> = reader
@@ -127,11 +120,7 @@ pub fn task_done(arguments: Vec<String>) {
 			println!("Task {} is now done", num + 1);
 		}
 	}
-	
-	file = fs::File::create("./data/tasks.file").expect("Unable to write");
-	for line in &lines {
-		writeln!(&mut file, "{}", line).expect("Unable to write");
-	}
+	write_in(lines);
 }
 
 pub fn edit(arguments: Vec<String>) {
@@ -148,7 +137,7 @@ pub fn edit(arguments: Vec<String>) {
 		}
 	};
 
-	let mut file = open_file("data/tasks.file");
+	let file = open_file("data/tasks.file");
 	let reader = BufReader::new(file);
 	
 	let mut lines:Vec<String> = reader
@@ -164,14 +153,18 @@ pub fn edit(arguments: Vec<String>) {
 		} else {
 			lines[nrow] = arguments[1].to_string();
 		}
-
-		file = fs::File::create("./data/tasks.file").expect("Unable to write");
-		for line in &lines {
-			writeln!(&mut file, "{}", line).expect("Unable to write");
-		}
+		write_in(lines);
 	}
 	println!("Line {} edited", nrow);
 }
+
+fn write_in(vlines: Vec<String>) {
+	let file = fs::File::create("./data/tasks.file").expect("Unable to write");
+	for line in &vlines {
+		writeln!(&file, "{}", line).expect("Unable to write");
+	}
+}
+
 fn open_file(file_name: &str) -> File {
 	
 	let file = OpenOptions::new()
