@@ -2,7 +2,7 @@ use std::{fs::{OpenOptions, File, }, io::{BufReader, BufRead, Write}};
 use std::fs;
 
 pub fn list() {
-	let file = open_csv("data/tasks.csv");
+	let file = open_file("data/tasks.file");
 	let reader = BufReader::new(file);
 	
 	let mut lines:Vec<String> = reader
@@ -35,7 +35,7 @@ pub fn add(arguments: Vec<String>) {
 		std::process::exit(127);
 	}
 	
-	let mut file: File = open_csv("data/tasks.csv");
+	let mut file: File = open_file("data/tasks.file");
 	
 	for content in &arguments {
 		let content = content.to_owned() + "\n";
@@ -48,6 +48,90 @@ pub fn add(arguments: Vec<String>) {
 		}
 	}
 	println!("{} task/s added to the list !", arguments.len());
+}
+
+pub fn remove(arguments: Vec<String>) {
+	if arguments.len() < 1 {
+		std::process::exit(1);
+	}
+
+	let mut row:Vec<usize> = Vec::new();
+	
+	for arg in arguments {
+		let nrow:usize = match arg.parse() {
+			Ok(num) => num,
+			Err(_) => continue,
+		};
+		row.push(nrow);
+	}
+	
+	row.sort();
+	row.reverse();
+
+	for e in &row {
+		println!("{e}");
+	}
+
+	let mut file = open_file("./data/tasks.file");
+	let reader = BufReader::new(file);
+	
+	let mut lines:Vec<String> = reader
+		.lines()
+		.map(|line| line.unwrap())
+		.collect();
+
+	let length = lines.len();
+	for num in row {
+		if num <= length {
+			lines.remove(num - 1);
+			println!("Line {} has been removed", num);
+		}
+	}
+
+	file = fs::File::create("./data/tasks.file").expect("Unable to write");
+	for line in &lines {
+		writeln!(&mut file, "{}", line).expect("Unable to write");
+	}
+}
+
+pub fn task_done(arguments: Vec<String>) {
+	
+	if arguments.len() < 1 {
+		std::process::exit(1);
+	}
+	
+	let mut row:Vec<usize> = Vec::new();
+	
+	for arg in arguments {
+		let nrow:usize = match arg.parse() {
+			Ok(num) => num,
+			Err(_) => continue,
+		};
+		row.push(nrow);
+	}
+	
+	row.sort();
+	
+	let mut file = open_file("./data/tasks.file");
+	let reader = BufReader::new(file);
+	
+	let mut lines:Vec<String> = reader
+		.lines()
+		.map(|line| line.unwrap())
+		.collect();
+	
+	for num in row {
+		if num <= lines.len() && lines[num - 1].ends_with(".d") == false {
+			let num = num - 1;
+			lines[num] = lines[num].to_string() + ".d";
+			println!("Task {} is now done", num + 1);
+		}
+	}
+	
+	file = fs::File::create("./data/tasks.file").expect("Unable to write");
+	for line in &lines {
+		writeln!(&mut file, "{}", line).expect("Unable to write");
+	}
 }
 
 pub fn edit(arguments: Vec<String>) {
@@ -64,7 +148,7 @@ pub fn edit(arguments: Vec<String>) {
 		}
 	};
 
-	let mut file = open_csv("data/tasks.csv");
+	let mut file = open_file("data/tasks.file");
 	let reader = BufReader::new(file);
 	
 	let mut lines:Vec<String> = reader
@@ -81,55 +165,14 @@ pub fn edit(arguments: Vec<String>) {
 			lines[nrow] = arguments[1].to_string();
 		}
 
-		file = fs::File::create("./data/tasks.csv").expect("Unable to write");
+		file = fs::File::create("./data/tasks.file").expect("Unable to write");
 		for line in &lines {
 			writeln!(&mut file, "{}", line).expect("Unable to write");
 		}
 	}
 	println!("Line {} edited", nrow);
 }
-
-pub fn task_done(arguments: Vec<String>) {
-	
-	if arguments.len() < 1 {
-		std::process::exit(1);
-	}
-
-	let mut row:Vec<usize> = Vec::new();
-
-	for arg in arguments {
-		let nrow:usize = match arg.parse() {
-			Ok(num) => num,
-			Err(_) => continue,
-		};
-		row.push(nrow);
-	}
-
-	row.sort();
-
-	let mut file = open_csv("./data/tasks.csv");
-	let reader = BufReader::new(file);
-	
-	let mut lines:Vec<String> = reader
-		.lines()
-		.map(|line| line.unwrap())
-		.collect();
-
-	for num in row {
-		if num <= lines.len() && lines[num - 1].ends_with(".d") == false {
-			let num = num - 1;
-			lines[num] = lines[num].to_string() + ".d";
-			println!("Task {} is now done", num + 1);
-		}
-	}
-
-	file = fs::File::create("./data/tasks.csv").expect("Unable to write");
-	for line in &lines {
-		writeln!(&mut file, "{}", line).expect("Unable to write");
-	}
-}
-
-fn open_csv(file_name: &str) -> File {
+fn open_file(file_name: &str) -> File {
 	
 	let file = OpenOptions::new()
 		.read(true)
@@ -148,9 +191,9 @@ fn open_csv(file_name: &str) -> File {
 }
 
 pub fn delete() {
-	if fs::metadata("./data/tasks.csv").is_ok() {
-		let _ = match fs::remove_file("./data/tasks.csv") {
-			Ok(_) => File::create("./data/tasks.csv"),
+	if fs::metadata("./data/tasks.file").is_ok() {
+		let _ = match fs::remove_file("./data/tasks.file") {
+			Ok(_) => File::create("./data/tasks.file"),
 			Err(err) => {
 				eprintln!("Error when deleting: \"{}\"", err);
 				std::process::exit(127);

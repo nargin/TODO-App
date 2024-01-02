@@ -1,7 +1,7 @@
 mod library;
 
 use std::{env, fs};
-use library::{add, help, list, edit, delete, task_done};
+use library::{add, help, list, edit, delete, task_done, remove};
 
 fn main()
 {	
@@ -37,6 +37,7 @@ fn main()
 		"add" => add(args),
 		"done" => task_done(args),
 		"edit" => edit(args),
+		"rm" => remove(args),
 		"del" => delete(),
 		"help" => help(),
 		_ => {
